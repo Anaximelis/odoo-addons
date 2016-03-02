@@ -28,6 +28,7 @@ myserverpath=$mybasepath"/odoo-server"
 myaddpath=$mybasepath"/odoo-addons"
 my3rdpath=$mybasepath"/odoo-third-party-modules"
 myocapath=$mybasepath"/oca-modules"
+server_install_helpers=$myaddpath"/scripts/server-install-helpers"
 
 echo "Basepath: "$mybasepath
 echo "Sourcepath: "$mysourcepath
@@ -36,23 +37,29 @@ echo "odoo-addons path: "$myaddpath
 echo "odoo-third-party-modules path: "$my3rdpath
 echo "oca-modules path: "$myocapath
 
+# Check if git is installed
+if [ "$(dpkg -s git|grep -c installed)" = 0 ]; then
+	echo "Das Paket git ist auf ihrem System nicht vorhanden. Es wird jetzt installiert ..."
+	apt-get update && apt-get install git -y
+fi
+
 echo "Prepare PostgreSQL"
 adduser odoo --home /opt/odoo
 
-echo "Geben Sie das Passwort für den User odoo innerhalb der PostgreSQL an:"
+echo "Geben Sie das Passwort für den User odoo innerhalb der PostgreSQL an (Leerlassen für kein Passwort): "
 read myodoopwd
 
 if [ "$myodoopwd" != "" ]; then
-  echo "PostgreSQL Passwort odoo wird gesetzt..."
+  echo "PostgreSQL Passwort odoo wird gesetzt ..."
   su postgres -c "psql --command \"CREATE USER odoo WITH PASSWORD '$myodoopwd'\""
   su postgres -c "psql --command \"ALTER USER odoo CREATEDB\""
 fi
 
-echo "Geben Sie das Passwort für den User postgres innerhalb der PostgreSQL an:"
+echo "Geben Sie das Passwort für den User postgres innerhalb der PostgreSQL an (Leerlassen für kein Passwort): "
 read mypsqlpwd
 
 if [ "$mypsqlpwd" != "" ]; then
-  echo "PostgreSQL Passwort postgres wird gesetzt..."
+  echo "PostgreSQL Passwort postgres wird gesetzt ..."
   su postgres -c "psql --command \"ALTER USER postgres WITH PASSWORD '$mypsqlpwd'\""
 fi
 
@@ -138,33 +145,38 @@ cp -r $myocapath/web_sheet_full_width $myserverpath/addons
 cp -r $myocapath/web_shortcuts $myserverpath/addons
 cp -r $myocapath/web_translate_dialog $myserverpath/addons
 
-echo "Insert the password for the databasemanager | Geben Sie das Passwort für den Databasemanager ein:"
+echo "Insert the password for the databasemanager | Geben Sie das Passwort für den Databasemanager ein (Leerlassen für kein Passwort): "
 read myadminpwd
 
 old="'admin_passwd': 'admin'"
 new="'admin_passwd': '$myadminpwd'"
 
-echo "Changing databasemanager password.."
+echo "Changing databasemanager password / Ändere das Kennwort des Datenbankmanagers ..."
 cp  $myserverpath/openerp/tools/config.py $mybasepath/config.py
 sed -i "s/$old/$new/g" $mybasepath/config.py
 cp  $mybasepath/config.py $myserverpath/openerp/tools
 
-echo "Preparing favicon for later exchange.."
+echo "Preparing favicon for later exchange ..."
 cp  $myserverpath/addons/web/static/src/img/favicon.ico $mybasepath/
 
-echo "Changing rights.."
+echo "Changing rights / Ändere Ordner-Rechte ..."
 chown -R odoo:odoo $myserverpath
 chown -R odoo:odoo $mysourcepath
 chown -R odoo:odoo $mybasepath
 
-cp $myscriptpath/server-install-helpers/odoo-server.conf /etc/odoo-server.conf
+echo "Kopiere Serverkonfiguration ..."
+cp $server_install_helpers/odoo-server.conf /etc/odoo-server.conf
 chown odoo:odoo /etc/odoo-server.conf
 chmod 640 /etc/odoo-server.conf
+
+echo "Prepare logfile / Bereite Lagdatei vor ..."
 mkdir /var/log/odoo
 chown odoo:root /var/log/odoo
-cp $myscriptpath/server-install-helpers/logrotate /etc/logrotate.d/odoo-server
+cp $server_install_helpers/logrotate /etc/logrotate.d/odoo-server
 chmod 755 /etc/logrotate.d/odoo-server
-cp $myscriptpath/server-install-helpers/odoo.init.d /etc/init.d/odoo-server
+
+echo "Prepare odoo-server as service / Bereite odoo-server als Service vor ..."
+cp $server_install_helpers/odoo.init.d /etc/init.d/odoo-server
 chmod +x /etc/init.d/odoo-server
 update-rc.d odoo-server defaults
 

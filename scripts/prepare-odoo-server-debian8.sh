@@ -35,17 +35,20 @@ apt-get install -y --no-install-recommends \
 			apt-transport-https \
 			needrestart
 
-echo "Do you want install postgresql ? / Wollen Sie die PostgreSQL-DB installieren  (Y/n):"
-read mypsql
+while true; do
+    read -p "Do you want install PostgreSQL? [y/n] / Wollen Sie die PostgreSQL-DB installieren? [j/n]: " yn
+    case $yn in
+        [YyJj]* ) echo "PostgreSQL will be install / PostgreSQL wird installiert ..."
+  				apt-get install postgresql
+        break;;
+        [Nn]* ) echo "PostgreSQL is not installed! / PostgreSQL wurde nicht installiert!"
+        		break;;
+        * ) echo "Please answer (y)es or (n)o. / Bitte antworten sie mit (j)a oder (n)ein";;
+    esac
+done
 
-if [ "$mypsql" = "Y" ]; then
-  echo "PostgreSQL will be install..."
-  apt-get install postgresql
-else
-  echo "PostgreSQL is not installed!"
-fi
 
-echo "apt-get packages will be install.."
+echo "apt-get packages will be install / apt-get Pakete werden installiert ..."
 apt-get install -y --no-install-recommends \
 			ghostscript \
 			graphviz \
@@ -56,9 +59,10 @@ apt-get install -y --no-install-recommends \
 			libfreetype6-dev \
 			libjpeg-dev \
 			wget \
-			sqlite3
+			sqlite3 \
+			git
 
-echo "apt-get python packages will be install.."
+echo "apt-get python packages will be install / apt-get python Pakete werden installiert ..."
 apt-get install -y --no-install-recommends \
 		python-pip \
 		python-magic \
@@ -107,7 +111,7 @@ apt-get install -y --no-install-recommends \
 		python-pyinotify \
 		python-gevent
 
-echo "pip packages will be install.."
+echo "pip packages will be install / pip Pakete werden insatlliert ..."
 pip install passlib \
 	&& pip install beautifulsoup4 \
 	&& pip install evdev \
@@ -134,60 +138,67 @@ pip install passlib \
 	&& pip install odoorpc \
 	&& pip install pillow==2.6.0
 
-echo "npm packages will be install.."
+echo "npm packages will be install / ntp Paket wird installiert ..."
 curl -sL https://deb.nodesource.com/setup_0.12 | bash -
 apt-get install -y --no-install-recommends nodejs
 npm install -g less less-plugin-clean-css
 ln -s /usr/bin/nodejs /usr/bin/node
 
-echo "Do you want install barcodes? / Wollen Sie die Barcodes installieren (Y/n):"
-read myfonts
+while true; do
+    read -p "Do you want install barcodes? [y/n] / Wollen Sie die Barcodes installieren? [j/n]: " yn
+    case $yn in
+        [YyJj]* ) echo "Barcodes will be install / Barcodes werden installiert ..."
+  				wget http://www.reportlab.com/ftp/pfbfer.zip
+  				unzip pfbfer.zip -d fonts
+  				mv fonts /usr/lib/python2.7/dist-packages/reportlab/
+  				rm pfbfer.zip
+        break;;
+        [Nn]* ) echo "Barcodes is not installed! / Barcodes wurden nicht installiert!"
+        		break;;
+        * ) echo "Please answer (y)es or (n)o. / Bitte antworten sie mit (j)a oder (n)ein";;
+    esac
+done
 
-if [ "$myfonts" = "Y" ]; then
-  echo "Barcodes will be install..."
-  wget http://www.reportlab.com/ftp/pfbfer.zip
-  unzip pfbfer.zip -d fonts
-  mv fonts /usr/lib/python2.7/dist-packages/reportlab/
-  rm pfbfer.zip
-else
-  echo "Barcodes is not installed!"
-fi
+while true; do
+    read -p "Do you want install module HTML2PDF? [y/n] / Wollen Sie das Modul HTML2PDF installieren [j/n]: " yn
+    case $yn in
+        [YyJj]* ) echo "HTML2PDF will be install / HTML2PDF wird installiert ..."
+  				wget http://www.openerp24.de/fileadmin/content/dateien/wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
+  				dpkg -i wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
+  				rm wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
+  				apt-get -f install
+        break;;
+        [Nn]* ) echo "HTML2PDF is not installed! / HTML2PDF wurden nicht installiert!"
+        		break;;
+        * ) echo "Please answer (y)es or (n)o. / Bitte antworten sie mit (j)a oder (n)ein";;
+    esac
+done
 
+while true; do
+    read -p "Do you want use the PointOfSale (PoS)? [y/n] / Wollen Sie Odoo mit Kassenmodul (PoS) verwenden [j/n]: " yn
+    case $yn in
+        [YyJj]* ) echo "PoS will be install / PoS wird installiert ..."
+  				pip install pyserial
+  				pip install pyusb
+        break;;
+        [Nn]* ) echo "PoS is not installed! / PoS wurden nicht installiert!"
+        		break;;
+        * ) echo "Please answer (y)es or (n)o. / Bitte antworten sie mit (j)a oder (n)ein";;
+    esac
+done
 
-echo "Do you want install module HTML2PDF? / Wollen Sie das Modul HTML2PDF installieren (Y/n):"
-read mypdf
-
-if [ "$mypdf" = "Y" ]; then
-  echo "HTML2PDF will be install..."
-  wget http://www.openerp24.de/fileadmin/content/dateien/wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
-  dpkg -i wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
-  rm wkhtmltox-0.12.2.1_linux-jessie-amd64.deb
-  apt-get -f install
-else
-  echo "HTML2PDF is not installed!"
-fi
-
-echo "Do you want use the PointOfSale (PoS)? / Wollen Sie Odoo mit Kassenmodul verwenden(Y/n):"
-read mypos
-
-if [ "$mypos" = "Y" ]; then
-  echo "PoS will be install..."
-  pip install pyserial
-  pip install pyusb
-else
-  echo "PoS is not prepared!"
-fi
-
-echo "Do you want to use standard port 80 against 8069 and install nginx | Wollen Sie eine Port-Umleitung auf Standard Port 80 und nginx installieren [Y/n]:"
-read myport
-
-if [ "$myport" = "Y" ]; then
-  echo "nginx will be install..."
-  apt-get update
-  apt-get install nginx
-else
-  echo "nginx is not installed!"
-fi
+while true; do
+    read -p "Do you want to use standard port 80 against 8069 and install nginx? [y/n] | Wollen Sie eine Port-Umleitung auf Standard Port 80 und nginx installieren? [j/n]: " yn
+    case $yn in
+        [YyJj]* ) echo "nginx will be install / nginx wird installiert ..."
+  				pip install pyserial
+  				pip install pyusb
+        break;;
+        [Nn]* ) echo "nginx is not installed! / nginx wurden nicht installiert!"
+        		break;;
+        * ) echo "Please answer (y)es or (n)o. / Bitte antworten sie mit (j)a oder (n)ein";;
+    esac
+done
 
 
 echo "Finished!"
