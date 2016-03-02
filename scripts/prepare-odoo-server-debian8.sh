@@ -191,8 +191,8 @@ while true; do
     read -p "Do you want to use standard port 80 against 8069 and install nginx? [y/n] | Wollen Sie eine Port-Umleitung auf Standard Port 80 und nginx installieren? [j/n]: " yn
     case $yn in
         [YyJj]* ) echo "nginx will be install / nginx wird installiert ..."
-  				pip install pyserial
-  				pip install pyusb
+  				apt-get update
+  				apt-get install nginx
         break;;
         [Nn]* ) echo "nginx is not installed! / nginx wurden nicht installiert!"
         		break;;
